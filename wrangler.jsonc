@@ -12,5 +12,8 @@
       "database_name": "hono-messaging-worker-db",
       "database_id": "7eeffe2a-fa14-4590-80ce-bcdb4e8fb6ae"
     }
-  ]
+  ],
+  "triggers": {
+    "crons": ["0 10 * * *"] // Every day at 10:00 UTC
+  }
 }
