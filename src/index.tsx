@@ -51,7 +51,7 @@ async function sendPendingSummaries(
 
     const { id, email, summary, topic } = row;
 
-    const mailgunUrl = `${env.MAILGUN_BASE_URL}/v3/${env.MAILGUN_DOMAIN}/messages`;
+    const mailgunUrl = `${env.MAILGUN_BASE_URL}/${env.MAILGUN_DOMAIN}/messages`;
     const params = new URLSearchParams();
     params.append("from", `no-reply@${env.MAILGUN_DOMAIN}`);
     params.append("to", email);
