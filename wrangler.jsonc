@@ -15,5 +15,9 @@
   ],
   "triggers": {
     "crons": ["0 10 * * *"] // Every day at 10:00 UTC
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
   }
 }

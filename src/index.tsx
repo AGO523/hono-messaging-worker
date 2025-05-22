@@ -42,9 +42,13 @@ async function sendPendingSummaries(
     .bind("pending")
     .all<Summary>();
 
+  console.log(`Fetched ${results.length} pending summaries`);
+
   let sentCount = 0;
 
   for (const row of results) {
+    console.log("Processing summary row:", row);
+
     const { id, email, summary, topic } = row;
 
     const mailgunUrl = `${env.MAILGUN_BASE_URL}/v3/${env.MAILGUN_DOMAIN}/messages`;
@@ -53,6 +57,8 @@ async function sendPendingSummaries(
     params.append("to", email);
     params.append("subject", `Summary for ${topic}`);
     params.append("text", summary);
+
+    console.log("Mailgun POST body:", params.toString());
 
     const response = await fetch(mailgunUrl, {
       method: "POST",
@@ -63,6 +69,10 @@ async function sendPendingSummaries(
       body: params.toString(),
     });
 
+    const responseBody = await response.text();
+    console.log(`Mailgun response status: ${response.status}`);
+    console.log(`Mailgun response body: ${responseBody}`);
+
     if (response.ok) {
       await db
         .prepare("UPDATE summaries SET status = ? WHERE id = ?")
@@ -70,7 +80,11 @@ async function sendPendingSummaries(
         .run();
       sentCount++;
     } else {
-      console.error(`Failed to send email to ${email}:`, await response.text());
+      console.error(
+        `Failed to send email to ${email}:`,
+        response.status,
+        responseBody
+      );
     }
   }
 
