@@ -30,25 +30,17 @@ app.get("/", (c) => {
 app.post("/send-test", async (c) => {
   const env = c.env;
   const result = await sendPendingSummaries(env);
-  return c.text(`Done. Sent ${result.sent} / ${result.total} summaries.`);
+  return c.text(`Done. ${result.total} summaries.`);
 });
 
-async function sendPendingSummaries(
-  env: Bindings
-): Promise<{ sent: number; total: number }> {
+async function sendPendingSummaries(env: Bindings): Promise<{ total: number }> {
   const db = env.DB;
   const { results } = await db
     .prepare("SELECT * FROM summaries WHERE status = ?")
     .bind("pending")
     .all<Summary>();
 
-  console.log(`Fetched ${results.length} pending summaries`);
-
-  let sentCount = 0;
-
   for (const row of results) {
-    console.log("Processing summary row:", row);
-
     const { id, email, summary, topic } = row;
 
     const mailgunUrl = `${env.MAILGUN_BASE_URL}/${env.MAILGUN_DOMAIN}/messages`;
@@ -57,8 +49,6 @@ async function sendPendingSummaries(
     params.append("to", email);
     params.append("subject", `Summary for ${topic}`);
     params.append("text", summary);
-
-    console.log("Mailgun POST body:", params.toString());
 
     const response = await fetch(mailgunUrl, {
       method: "POST",
@@ -70,25 +60,28 @@ async function sendPendingSummaries(
     });
 
     const responseBody = await response.text();
-    console.log(`Mailgun response status: ${response.status}`);
-    console.log(`Mailgun response body: ${responseBody}`);
 
-    if (response.ok) {
-      await db
-        .prepare("UPDATE summaries SET status = ? WHERE id = ?")
-        .bind("completed", id)
-        .run();
-      sentCount++;
-    } else {
-      console.error(
-        `Failed to send email to ${email}:`,
-        response.status,
-        responseBody
-      );
-    }
+    // 一度だけ送信する場合
+    // if (response.ok) {
+    //   await db
+    //     .prepare("UPDATE summaries SET status = ? WHERE id = ?")
+    //     .bind("completed", id)
+    //     .run();
+    // } else {
+    //   console.error(
+    //     `Failed to send email to ${email}:`,
+    //     response.status,
+    //     responseBody
+    //   );
+    // }
+
+    console.log(
+      `Sent email to ${email} with status ${response.status}:`,
+      responseBody
+    );
   }
 
-  return { sent: sentCount, total: results.length };
+  return { total: results.length };
 }
 
 export default {
