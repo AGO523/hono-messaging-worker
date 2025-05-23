@@ -41,14 +41,20 @@ async function sendPendingSummaries(env: Bindings): Promise<{ total: number }> {
     .all<Summary>();
 
   for (const row of results) {
-    const { id, email, summary, topic } = row;
+    const { email, summary, topic } = row;
 
     const mailgunUrl = `${env.MAILGUN_BASE_URL}/${env.MAILGUN_DOMAIN}/messages`;
     const params = new URLSearchParams();
     params.append("from", `no-reply@${env.MAILGUN_DOMAIN}`);
     params.append("to", email);
-    params.append("subject", `Summary for ${topic}`);
-    params.append("text", summary);
+    params.append(
+      "subject",
+      "【毎日配信】iwashi からニュース要約のお知らせです。"
+    );
+    params.append(
+      "text",
+      `登録した【${topic}】のニュースを要約しました。\n\n${summary}`
+    );
 
     const response = await fetch(mailgunUrl, {
       method: "POST",
