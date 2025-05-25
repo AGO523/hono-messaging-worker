@@ -14,7 +14,7 @@
     }
   ],
   "triggers": {
-    "crons": ["0 10 * * *"] // Every day at 10:00 UTC
+    "crons": ["30 0 * * *"] // Every day at 9:30 AM JST
   },
   "observability": {
     "enabled": true,
