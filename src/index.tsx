@@ -41,7 +41,7 @@ async function sendPendingSummaries(env: Bindings): Promise<{ total: number }> {
     .all<Summary>();
 
   for (const row of results) {
-    const { email, summary, topic } = row;
+    const { email, summary, topic, id } = row;
 
     const mailgunUrl = `${env.MAILGUN_BASE_URL}/${env.MAILGUN_DOMAIN}/messages`;
     const params = new URLSearchParams();
@@ -67,19 +67,18 @@ async function sendPendingSummaries(env: Bindings): Promise<{ total: number }> {
 
     const responseBody = await response.text();
 
-    // 一度だけ送信する場合
-    // if (response.ok) {
-    //   await db
-    //     .prepare("UPDATE summaries SET status = ? WHERE id = ?")
-    //     .bind("completed", id)
-    //     .run();
-    // } else {
-    //   console.error(
-    //     `Failed to send email to ${email}:`,
-    //     response.status,
-    //     responseBody
-    //   );
-    // }
+    if (response.ok) {
+      await db
+        .prepare("UPDATE summaries SET status = ? WHERE id = ?")
+        .bind("completed", id)
+        .run();
+    } else {
+      console.error(
+        `Failed to send email to ${email}:`,
+        response.status,
+        responseBody
+      );
+    }
 
     console.log(
       `Sent email to ${email} with status ${response.status}:`,
